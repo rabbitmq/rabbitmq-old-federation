@@ -14,12 +14,12 @@
 %% Copyright (c) 2007-2011 VMware, Inc.  All rights reserved.
 %%
 
--module(rabbit_federation_link_sup_sup).
+-module(rabbit_federation_old_link_sup_sup).
 
 -behaviour(mirrored_supervisor).
 
 -include_lib("rabbit_common/include/rabbit.hrl").
--define(SUPERVISOR, rabbit_federation_link_sup_sup).
+-define(SUPERVISOR, rabbit_federation_old_link_sup_sup).
 
 -export([start_link/0, start_child/2, stop_child/1]).
 
@@ -34,9 +34,9 @@ start_link() ->
 start_child(Id, Args) ->
     {ok, Pid} = mirrored_supervisor:start_child(
                   ?SUPERVISOR,
-                  {Id, {rabbit_federation_link_sup, start_link, [Args]},
+                  {Id, {rabbit_federation_old_link_sup, start_link, [Args]},
                    transient, ?MAX_WAIT, supervisor,
-                   [rabbit_federation_link_sup]}),
+                   [rabbit_federation_old_link_sup]}),
     {ok, Pid}.
 
 stop_child(Id) ->

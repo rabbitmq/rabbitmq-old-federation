@@ -14,11 +14,11 @@
 %% Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
 %%
 
--module(rabbit_federation_link).
+-module(rabbit_federation_old_link).
 
 -include_lib("kernel/include/inet.hrl").
 -include_lib("amqp_client/include/amqp_client.hrl").
--include("rabbit_federation.hrl").
+-include("rabbit_federation_old.hrl").
 
 -behaviour(gen_server2).
 
@@ -50,7 +50,7 @@
 %% We start off in a state where we do not connect, since we can first
 %% start during exchange recovery, when rabbit is not fully started
 %% and the Erlang client is not running. This then gets invoked when
-%% the federation app is started.
+%% the federation_old app is started.
 go() -> cast(go).
 
 add_binding(S, XN, B)      -> cast(XN, {enqueue, S, {add_binding, B}}).
@@ -69,9 +69,9 @@ start_link(Args) ->
     gen_server2:start_link(?MODULE, Args, [{timeout, infinity}]).
 
 init(Args = {Upstream, XName}) ->
-    rabbit_federation_status:report(Upstream, XName, starting),
-    join(rabbit_federation_exchanges),
-    join({rabbit_federation_exchange, XName}),
+    rabbit_federation_old_status:report(Upstream, XName, starting),
+    join(rabbit_federation_old_exchanges),
+    join({rabbit_federation_old_exchange, XName}),
     gen_server2:cast(self(), maybe_go),
     {ok, {not_started, Args}}.
 
@@ -86,7 +86,7 @@ handle_call(Msg, _From, State) ->
     {stop, {unexpected_call, Msg}, State}.
 
 handle_cast(maybe_go, S0 = {not_started, _Args}) ->
-    case federation_up() of
+    case federation_old_up() of
         true  -> go(S0);
         false -> {noreply, S0}
     end;
@@ -94,7 +94,7 @@ handle_cast(maybe_go, S0 = {not_started, _Args}) ->
 handle_cast(go, S0 = {not_started, _Args}) ->
     go(S0);
 
-%% There's a small race - I think we can realise federation is up
+%% There's a small race - I think we can realise federation_old is up
 %% before 'go' gets invoked. Ignore.
 handle_cast(go, State) ->
     {noreply, State};
@@ -129,9 +129,9 @@ handle_info({#'basic.deliver'{routing_key  = Key,
     Headers0 = extract_headers(Msg),
     %% TODO add user information here?
     %% We need to check should_forward/2 here in case the upstream
-    %% does not have federation and thus is using a fanout exchange.
-    case rabbit_federation_util:should_forward(Headers0, MaxHops) of
-        true  -> {table, Info0} = rabbit_federation_upstream:to_table(Upstream),
+    %% does not have federation_old and thus is using a fanout exchange.
+    case rabbit_federation_old_util:should_forward(Headers0, MaxHops) of
+        true  -> {table, Info0} = rabbit_federation_old_upstream:to_table(Upstream),
                  Info = Info0 ++ [{<<"redelivered">>, bool, Redelivered}],
                  Headers = rabbit_basic:append_table_header(
                              ?ROUTING_HEADER, Info, Headers0),
@@ -193,17 +193,17 @@ join(Name) ->
     ok = pg2_fixed:join(Name, self()).
 
 all() ->
-    pg2_fixed:create(rabbit_federation_exchanges),
-    pg2_fixed:get_members(rabbit_federation_exchanges).
+    pg2_fixed:create(rabbit_federation_old_exchanges),
+    pg2_fixed:get_members(rabbit_federation_old_exchanges).
 
 x(XName) ->
-    pg2_fixed:create({rabbit_federation_exchange, XName}),
-    pg2_fixed:get_members({rabbit_federation_exchange, XName}).
+    pg2_fixed:create({rabbit_federation_old_exchange, XName}),
+    pg2_fixed:get_members({rabbit_federation_old_exchange, XName}).
 
 %%----------------------------------------------------------------------------
 
-federation_up() ->
-    proplists:is_defined(rabbitmq_federation,
+federation_old_up() ->
+    proplists:is_defined(rabbitmq_federation_old,
                          application:which_applications(infinity)).
 
 handle_command({add_binding, Binding}, State) ->
@@ -305,11 +305,11 @@ go(S0 = {not_started, {Upstream, DownXName =
     %% We trap exits so terminate/2 gets called. Note that this is not
     %% in init() since we need to cope with the link getting restarted
     %% during shutdown (when a broker federates with itself), which
-    %% means we hang in federation_up() and the supervisor must force
+    %% means we hang in federation_old_up() and the supervisor must force
     %% us to exit. We can therefore only trap exits when past that
     %% point. Bug 24372 may help us do something nicer.
     process_flag(trap_exit, true),
-    case open_monitor(rabbit_federation_util:local_params(DownVHost)) of
+    case open_monitor(rabbit_federation_old_util:local_params(DownVHost)) of
         {ok, DConn, DCh} ->
             #'confirm.select_ok'{} =
                amqp_channel:call(DCh, #'confirm.select'{}),
@@ -342,10 +342,10 @@ go(S0 = {not_started, {Upstream, DownXName =
                                   Bindings),
                         rabbit_log:info("Federation ~s connected to ~s~n",
                                         [rabbit_misc:rs(DownXName),
-                                         rabbit_federation_upstream:to_string(
+                                         rabbit_federation_old_upstream:to_string(
                                            Upstream)]),
                         Name = pget(name, amqp_connection:info(DConn, [name])),
-                        rabbit_federation_status:report(
+                        rabbit_federation_old_status:report(
                           Upstream, DownXName, {running, Name}),
                         {noreply, State}
                     catch exit:E ->
@@ -364,22 +364,22 @@ go(S0 = {not_started, {Upstream, DownXName =
     end.
 
 connection_error(remote, E, State = {not_started, {U, XName}}) ->
-    rabbit_federation_status:report(U, XName, clean_reason(E)),
+    rabbit_federation_old_status:report(U, XName, clean_reason(E)),
     rabbit_log:warning("Federation ~s did not connect to ~s~n~p~n",
                        [rabbit_misc:rs(XName),
-                        rabbit_federation_upstream:to_string(U), E]),
+                        rabbit_federation_old_upstream:to_string(U), E]),
     {stop, {shutdown, restart}, State};
 
 connection_error(remote, E, State = #state{upstream            = U,
                                            downstream_exchange = XName}) ->
-    rabbit_federation_status:report(U, XName, clean_reason(E)),
+    rabbit_federation_old_status:report(U, XName, clean_reason(E)),
     rabbit_log:info("Federation ~s disconnected from ~s~n~p~n",
                     [rabbit_misc:rs(XName),
-                     rabbit_federation_upstream:to_string(U), E]),
+                     rabbit_federation_old_upstream:to_string(U), E]),
     {stop, {shutdown, restart}, State};
 
 connection_error(local, E, State = {not_started, {U, XName}}) ->
-    rabbit_federation_status:report(U, XName, clean_reason(E)),
+    rabbit_federation_old_status:report(U, XName, clean_reason(E)),
     rabbit_log:warning("Federation ~s did not connect locally~n~p~n",
                        [rabbit_misc:rs(XName), E]),
     {stop, {shutdown, restart}, State}.
@@ -438,7 +438,7 @@ ensure_upstream_bindings(State = #state{upstream            = Upstream,
                                         queue               = Q}, Bindings) ->
     #upstream{exchange = XNameBin,
               params   = #amqp_params_network{virtual_host = VHost}} = Upstream,
-    OldSuffix = rabbit_federation_db:get_active_suffix(
+    OldSuffix = rabbit_federation_old_db:get_active_suffix(
                   DownXName, Upstream, <<"A">>),
     Suffix = case OldSuffix of
                  <<"A">> -> <<"B">>;
@@ -449,7 +449,7 @@ ensure_upstream_bindings(State = #state{upstream            = Upstream,
     amqp_channel:call(Ch, #'queue.bind'{exchange = IntXNameBin, queue = Q}),
     State1 = State#state{internal_exchange = IntXNameBin},
     State2 = lists:foldl(fun add_binding/2, State1, Bindings),
-    rabbit_federation_db:set_active_suffix(DownXName, Upstream, Suffix),
+    rabbit_federation_old_db:set_active_suffix(DownXName, Upstream, Suffix),
     OldIntXNameBin = upstream_exchange_name(
                        XNameBin, VHost, DownXName, OldSuffix),
     delete_upstream_exchange(Conn, OldIntXNameBin),
@@ -465,7 +465,7 @@ ensure_upstream_exchange(IntXNameBin,
                                durable     = true,
                                internal    = true,
                                auto_delete = true},
-    XFU = Base#'exchange.declare'{type      = <<"x-federation-upstream">>,
+    XFU = Base#'exchange.declare'{type      = <<"x-federation_old-upstream">>,
                                   arguments = [{?MAX_HOPS_ARG, long, MaxHops}]},
     Fan = Base#'exchange.declare'{type = <<"fanout">>},
     disposable_connection_call(Params, XFU, fun(?COMMAND_INVALID, _Text) ->
@@ -483,7 +483,7 @@ upstream_queue_name(XNameBin, VHost, #resource{name         = DownXNameBin,
                    _     -> <<":", DownVHost/binary,
                               ":", DownXNameBin/binary>>
                end,
-    <<"federation: ", XNameBin/binary, " -> ", Node/binary, DownPart/binary>>.
+    <<"federation_old: ", XNameBin/binary, " -> ", Node/binary, DownPart/binary>>.
 
 upstream_exchange_name(XNameBin, VHost, DownXName, Suffix) ->
     Name = upstream_queue_name(XNameBin, VHost, DownXName),

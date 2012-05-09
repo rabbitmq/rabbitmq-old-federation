@@ -14,12 +14,12 @@
 %% Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
 %%
 
--module(rabbit_federation_link_sup).
+-module(rabbit_federation_old_link_sup).
 
 -behaviour(supervisor2).
 
 -include_lib("rabbit_common/include/rabbit.hrl").
--include("rabbit_federation.hrl").
+-include("rabbit_federation_old.hrl").
 
 %% Supervises the upstream links for an exchange.
 
@@ -35,13 +35,13 @@ init({UpstreamSet, XName}) ->
     %% mirrored_sup may fail us over to a different node with a
     %% different definition of the same upstream-set. This is the
     %% first point at which we know we're not switching nodes.
-    {ok, Upstreams} = rabbit_federation_upstream:from_set(UpstreamSet, XName),
+    {ok, Upstreams} = rabbit_federation_old_upstream:from_set(UpstreamSet, XName),
     %% 1, 1 so that the supervisor can give up and get into waiting
     %% for the reconnect_delay quickly.
     {ok, {{one_for_one, 1, 1},
           [spec(Upstream, XName) || Upstream <- Upstreams]}}.
 
 spec(Upstream = #upstream{reconnect_delay = Delay}, XName) ->
-    {Upstream, {rabbit_federation_link, start_link, [{Upstream, XName}]},
+    {Upstream, {rabbit_federation_old_link, start_link, [{Upstream, XName}]},
      {transient, Delay}, ?MAX_WAIT, worker,
-     [rabbit_federation_link]}.
+     [rabbit_federation_old_link]}.

@@ -14,7 +14,7 @@
 %% Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
 %%
 
--module(rabbit_federation_app).
+-module(rabbit_federation_old_app).
 
 -behaviour(application).
 -export([start/2, stop/1]).
@@ -26,12 +26,12 @@
 
 -include_lib("amqp_client/include/amqp_client.hrl").
 -import(rabbit_misc, [pget/3]).
--import(rabbit_federation_util, [pget_bin/2, pget_bin/3]).
+-import(rabbit_federation_old_util, [pget_bin/2, pget_bin/3]).
 
 start(_Type, _StartArgs) ->
     {ok, Xs} = application:get_env(rabbitmq_old_federation, exchanges),
     [declare_exchange(X) || X <- Xs],
-    rabbit_federation_link:go(),
+    rabbit_federation_old_link:go(),
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 stop(_State) ->
@@ -42,14 +42,14 @@ stop(_State) ->
 declare_exchange(Props) ->
     {ok, DefaultVHost} = application:get_env(rabbit, default_vhost),
     VHost = pget_bin(virtual_host, Props, DefaultVHost),
-    Params = rabbit_federation_util:local_params(VHost),
+    Params = rabbit_federation_old_util:local_params(VHost),
     {ok, Conn} = amqp_connection:start(Params),
     {ok, Ch} = amqp_connection:open_channel(Conn),
     XNameBin = pget_bin(exchange, Props),
     amqp_channel:call(
       Ch, #'exchange.declare'{
         exchange    = XNameBin,
-        type        = <<"x-federation">>,
+        type        = <<"x-federation_old">>,
         durable     = pget(durable,     Props, true),
         auto_delete = pget(auto_delete, Props, false),
         internal    = pget(internal,    Props, false),

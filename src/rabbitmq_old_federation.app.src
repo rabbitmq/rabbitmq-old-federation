@@ -3,7 +3,7 @@
   {vsn, "%%VSN%%"},
   {modules, []},
   {registered, []},
-  {mod, {rabbit_federation_app, []}},
+  {mod, {rabbit_federation_old_app, []}},
   {env, [{exchanges,      []},
          {upstream_sets,  []},
          {connections,    []},

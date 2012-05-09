@@ -14,15 +14,15 @@
 %% Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
 %%
 
--module(rabbit_federation_upstream).
+-module(rabbit_federation_old_upstream).
 
--include("rabbit_federation.hrl").
+-include("rabbit_federation_old.hrl").
 -include_lib("amqp_client/include/amqp_client.hrl").
 
 -export([to_table/1, to_string/1, from_set/2]).
 
 -import(rabbit_misc, [pget/2, pget/3]).
--import(rabbit_federation_util, [pget_bin/3]).
+-import(rabbit_federation_old_util, [pget_bin/3]).
 
 %%----------------------------------------------------------------------------
 

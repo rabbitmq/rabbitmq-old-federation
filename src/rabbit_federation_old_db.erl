@@ -14,9 +14,9 @@
 %% Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
 %%
 
--module(rabbit_federation_db).
+-module(rabbit_federation_old_db).
 
--include("rabbit_federation.hrl").
+-include("rabbit_federation_old.hrl").
 -include_lib("amqp_client/include/amqp_client.hrl").
 
 -define(DICT, orddict).

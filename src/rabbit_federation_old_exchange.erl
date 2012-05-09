@@ -14,12 +14,12 @@
 %% Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
 %%
 
--module(rabbit_federation_exchange).
+-module(rabbit_federation_old_exchange).
 
 -rabbit_boot_step({?MODULE,
-                   [{description, "federation exchange type"},
+                   [{description, "federation_old exchange type"},
                     {mfa, {rabbit_registry, register,
-                           [exchange, <<"x-federation">>, ?MODULE]}},
+                           [exchange, <<"x-federation_old">>, ?MODULE]}},
                     {requires, rabbit_registry},
                     {enables, recovery}]}).
 
@@ -34,7 +34,7 @@
 %%----------------------------------------------------------------------------
 
 description() ->
-    [{name, <<"x-federation">>},
+    [{name, <<"x-federation_old">>},
      {description, <<"Federation exchange">>}].
 
 serialise_events() -> true.
@@ -43,17 +43,17 @@ route(X, Delivery) -> with_module(X, fun (M) -> M:route(X, Delivery) end).
 
 validate(#exchange{name      = XName,
                    arguments = Args} = X) ->
-    rabbit_federation_util:validate_arg(<<"upstream-set">>, longstr, Args),
-    rabbit_federation_util:validate_arg(<<"type">>,         longstr, Args),
+    rabbit_federation_old_util:validate_arg(<<"upstream-set">>, longstr, Args),
+    rabbit_federation_old_util:validate_arg(<<"type">>,         longstr, Args),
     {longstr, SetName} = rabbit_misc:table_lookup(Args, <<"upstream-set">>),
-    case rabbit_federation_upstream:from_set(SetName, XName) of
+    case rabbit_federation_old_upstream:from_set(SetName, XName) of
         {error, E} -> fail_error(SetName, E);
         {ok, _}    -> ok
     end,
     {longstr, TypeBin} = rabbit_misc:table_lookup(Args, <<"type">>),
     case rabbit_exchange:check_type(TypeBin) of
-        'x-federation' -> rabbit_federation_util:fail(
-                            "Type argument must not be x-federation.", []);
+        'x-federation_old' -> rabbit_federation_old_util:fail(
+                            "Type argument must not be x-federation_old.", []);
         _              -> ok
     end,
     with_module(X, fun (M) -> M:validate(X) end).
@@ -63,29 +63,29 @@ create(transaction, X) ->
 create(none, X = #exchange{name      = XName,
                            arguments = Args}) ->
     {longstr, Set} = rabbit_misc:table_lookup(Args, <<"upstream-set">>),
-    {ok, Upstreams} = rabbit_federation_upstream:from_set(Set, XName),
-    ok = rabbit_federation_db:prune_scratch(XName, Upstreams),
-    {ok, _} = rabbit_federation_link_sup_sup:start_child(XName, {Set, XName}),
+    {ok, Upstreams} = rabbit_federation_old_upstream:from_set(Set, XName),
+    ok = rabbit_federation_old_db:prune_scratch(XName, Upstreams),
+    {ok, _} = rabbit_federation_old_link_sup_sup:start_child(XName, {Set, XName}),
     with_module(X, fun (M) -> M:create(none, X) end).
 
 delete(transaction, X, Bs) ->
     with_module(X, fun (M) -> M:delete(transaction, X, Bs) end);
 delete(none, X = #exchange{name = XName}, Bs) ->
-    rabbit_federation_link:stop(XName),
-    ok = rabbit_federation_link_sup_sup:stop_child(XName),
-    rabbit_federation_status:remove(XName),
+    rabbit_federation_old_link:stop(XName),
+    ok = rabbit_federation_old_link_sup_sup:stop_child(XName),
+    rabbit_federation_old_status:remove(XName),
     with_module(X, fun (M) -> M:delete(none, X, Bs) end).
 
 add_binding(transaction, X, B) ->
     with_module(X, fun (M) -> M:add_binding(transaction, X, B) end);
 add_binding(Serial, X = #exchange{name = XName}, B) ->
-    rabbit_federation_link:add_binding(Serial, XName, B),
+    rabbit_federation_old_link:add_binding(Serial, XName, B),
     with_module(X, fun (M) -> M:add_binding(serial(Serial, X), X, B) end).
 
 remove_bindings(transaction, X, Bs) ->
     with_module(X, fun (M) -> M:remove_bindings(transaction, X, Bs) end);
 remove_bindings(Serial, X = #exchange{name = XName}, Bs) ->
-    rabbit_federation_link:remove_bindings(Serial, XName, Bs),
+    rabbit_federation_old_link:remove_bindings(Serial, XName, Bs),
     with_module(X, fun (M) -> M:remove_bindings(serial(Serial, X), X, Bs) end).
 
 assert_args_equivalence(X = #exchange{name = XName, arguments = Args},
@@ -111,7 +111,7 @@ with_module(#exchange{arguments = Args}, Fun) ->
 
 fail_error(SetName, Reason) ->
     {Fmt, Args} = error_text(Reason),
-    rabbit_federation_util:fail("upstream-set ~s: " ++ Fmt, [SetName | Args]).
+    rabbit_federation_old_util:fail("upstream-set ~s: " ++ Fmt, [SetName | Args]).
 
 error_text(set_not_found)         -> {"set not found", []};
 error_text(no_connection_name)    -> {"no connection name", []};

@@ -14,14 +14,14 @@
 %% Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
 %%
 
--module(rabbit_federation_sup).
+-module(rabbit_federation_old_sup).
 
 -behaviour(supervisor).
 
 %% Supervises everything. There is just one of these.
 
 -include_lib("rabbit_common/include/rabbit.hrl").
--define(SUPERVISOR, rabbit_federation_sup).
+-define(SUPERVISOR, rabbit_federation_old_sup).
 
 -export([start_link/0]).
 
@@ -31,11 +31,11 @@
 %% a) it needs to be in place when exchange recovery takes place
 %% b) it needs to go up and down with rabbit
 
--rabbit_boot_step({rabbit_federation_supervisor,
-                   [{description, "federation"},
+-rabbit_boot_step({rabbit_federation_old_supervisor,
+                   [{description, "federation_old"},
                     {mfa,         {rabbit_sup, start_child, [?MODULE]}},
                     {requires,    kernel_ready},
-                    {enables,     rabbit_federation_exchange}]}).
+                    {enables,     rabbit_federation_old_exchange}]}).
 
 %%----------------------------------------------------------------------------
 
@@ -45,10 +45,10 @@ start_link() ->
 %%----------------------------------------------------------------------------
 
 init([]) ->
-    Status = {status, {rabbit_federation_status, start_link, []},
+    Status = {status, {rabbit_federation_old_status, start_link, []},
               transient, ?MAX_WAIT, worker,
-              [rabbit_federation_status]},
-    LinkSupSup = {links, {rabbit_federation_link_sup_sup, start_link, []},
+              [rabbit_federation_old_status]},
+    LinkSupSup = {links, {rabbit_federation_old_link_sup_sup, start_link, []},
                   transient, ?MAX_WAIT, supervisor,
-                  [rabbit_federation_link_sup_sup]},
+                  [rabbit_federation_old_link_sup_sup]},
     {ok, {{one_for_one, 3, 10}, [Status, LinkSupSup]}}.

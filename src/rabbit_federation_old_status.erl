@@ -14,11 +14,11 @@
 %%  Copyright (c) 2007-2011 VMware, Inc.  All rights reserved.
 %%
 
--module(rabbit_federation_status).
+-module(rabbit_federation_old_status).
 -behaviour(gen_server).
 
 -include_lib("amqp_client/include/amqp_client.hrl").
--include("rabbit_federation.hrl").
+-include("rabbit_federation_old.hrl").
 
 -export([start_link/0]).
 

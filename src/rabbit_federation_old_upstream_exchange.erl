@@ -14,17 +14,17 @@
 %% Copyright (c) 2007-2012 VMware, Inc.  All rights reserved.
 %%
 
--module(rabbit_federation_upstream_exchange).
+-module(rabbit_federation_old_upstream_exchange).
 
 -rabbit_boot_step({?MODULE,
-                   [{description, "federation upstream exchange type"},
+                   [{description, "federation_old upstream exchange type"},
                     {mfa, {rabbit_registry, register,
-                           [exchange, <<"x-federation-upstream">>, ?MODULE]}},
+                           [exchange, <<"x-federation_old-upstream">>, ?MODULE]}},
                     {requires, rabbit_registry},
                     {enables, recovery}]}).
 
 -include_lib("rabbit_common/include/rabbit.hrl").
--include("rabbit_federation.hrl").
+-include("rabbit_federation_old.hrl").
 
 -behaviour(rabbit_exchange_type).
 
@@ -35,7 +35,7 @@
 %%----------------------------------------------------------------------------
 
 description() ->
-    [{name, <<"x-federation-upstream">>},
+    [{name, <<"x-federation_old-upstream">>},
      {description, <<"Federation upstream helper exchange">>}].
 
 serialise_events() -> false.
@@ -44,13 +44,13 @@ route(X = #exchange{arguments = Args},
       D = #delivery{message = #basic_message{content = Content}}) ->
     {long, MaxHops} = rabbit_misc:table_lookup(Args, ?MAX_HOPS_ARG),
     Headers = rabbit_basic:extract_headers(Content),
-    case rabbit_federation_util:should_forward(Headers, MaxHops) of
+    case rabbit_federation_old_util:should_forward(Headers, MaxHops) of
         true  -> rabbit_exchange_type_fanout:route(X, D);
         false -> []
     end.
 
 validate(#exchange{arguments = Args}) ->
-    rabbit_federation_util:validate_arg(?MAX_HOPS_ARG, long, Args).
+    rabbit_federation_old_util:validate_arg(?MAX_HOPS_ARG, long, Args).
 
 create(_Tx, _X) -> ok.
 delete(_Tx, _X, _Bs) -> ok.
