@@ -1,5 +1,5 @@
-{application, rabbitmq_federation,
- [{description, "RabbitMQ Federation"},
+{application, rabbitmq_old_federation,
+ [{description, "RabbitMQ Federation (Old)"},
   {vsn, "%%VSN%%"},
   {modules, []},
   {registered, []},

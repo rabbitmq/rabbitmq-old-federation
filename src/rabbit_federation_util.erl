@@ -27,7 +27,7 @@
 %%----------------------------------------------------------------------------
 
 local_params(VHost) ->
-    {ok, U} = application:get_env(rabbitmq_federation, local_username),
+    {ok, U} = application:get_env(rabbitmq_old_federation, local_username),
     #amqp_params_direct{username     = list_to_binary(U),
                         virtual_host = VHost}.
 

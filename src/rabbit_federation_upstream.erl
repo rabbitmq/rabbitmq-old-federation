@@ -59,7 +59,7 @@ print(Fmt, Args) -> iolist_to_binary(io_lib:format(Fmt, Args)).
 
 from_set(SetName, #resource{name         = DefaultXNameBin,
                             virtual_host = DefaultVHost}) ->
-    {ok, Sets} = application:get_env(rabbitmq_federation, upstream_sets),
+    {ok, Sets} = application:get_env(rabbitmq_old_federation, upstream_sets),
     case pget(binary_to_list(SetName), Sets) of
         undefined -> {error, set_not_found};
         Set       -> Results = [from_props(P, DefaultXNameBin, DefaultVHost) ||
@@ -71,7 +71,7 @@ from_set(SetName, #resource{name         = DefaultXNameBin,
     end.
 
 from_props(Upst, DefaultXNameBin, DefaultVHost) ->
-    {ok, Connections} = application:get_env(rabbitmq_federation, connections),
+    {ok, Connections} = application:get_env(rabbitmq_old_federation, connections),
     case pget(connection, Upst) of
         undefined -> {error, no_connection_name};
         ConnName  -> case pget(ConnName, Connections) of

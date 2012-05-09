@@ -4,5 +4,5 @@ syntax: regexp
 ^cover/
 ^dist/
 .*\.beam
-^ebin/rabbitmq_federation.app
+^ebin/rabbitmq_old_federation.app
 ^tmp/

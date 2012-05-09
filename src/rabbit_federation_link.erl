@@ -490,7 +490,7 @@ upstream_exchange_name(XNameBin, VHost, DownXName, Suffix) ->
     <<Name/binary, " ", Suffix/binary>>.
 
 local_nodename() ->
-    {ok, Explicit} = application:get_env(rabbitmq_federation, local_nodename),
+    {ok, Explicit} = application:get_env(rabbitmq_old_federation, local_nodename),
     case Explicit of
         automatic -> {ID, _} = rabbit_nodes:parts(node()),
                      {ok, Host} = inet:gethostname(),
