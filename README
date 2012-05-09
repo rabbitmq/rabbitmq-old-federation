@@ -1,4 +1,8 @@
-Generic build instructions are at:
-        http://www.rabbitmq.com/plugin-development.html
+This is a copy of the federation plugin as it existed at the 2.8.2
+release. Since the configuration has changed completely since then, we
+want to offer people the option to stick with the old way until they
+get a chance to rewrite their config.
+
+And this is a separate repo due to the vagiaries of the build system.
 
 See http://www.rabbitmq.com/federation.html
