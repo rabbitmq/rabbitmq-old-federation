@@ -19,7 +19,7 @@
 -define(US_NAME, <<"upstream">>).
 -define(DS_NAME, <<"downstream">>).
 
--include("rabbit_federation.hrl").
+-include("rabbit_federation_old.hrl").
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("rabbit_common/include/rabbit.hrl").
 
@@ -36,7 +36,7 @@ serialisation_test() ->
               add_binding(3, X, B3),
 
               %% List of lists because one for each link
-              Keys = rabbit_federation_link:list_routing_keys(X#exchange.name),
+              Keys = rabbit_federation_old_link:list_routing_keys(X#exchange.name),
               ?assertEqual([[<<"1">>, <<"2">>]], Keys)
       end).
 
@@ -53,12 +53,12 @@ with_exchanges(Fun) ->
     ok.
 
 add_binding(Ser, X, B) ->
-    rabbit_federation_exchange:add_binding(transaction, X, B),
-    rabbit_federation_exchange:add_binding(Ser, X, B).
+    rabbit_federation_old_exchange:add_binding(transaction, X, B),
+    rabbit_federation_old_exchange:add_binding(Ser, X, B).
 
 remove_bindings(Ser, X, Bs) ->
-    rabbit_federation_exchange:remove_bindings(transaction, X, Bs),
-    rabbit_federation_exchange:remove_bindings(Ser, X, Bs).
+    rabbit_federation_old_exchange:remove_bindings(transaction, X, Bs),
+    rabbit_federation_old_exchange:remove_bindings(Ser, X, Bs).
 
 x() ->
     Args = [{<<"upstream-set">>, longstr, <<"upstream">>},
@@ -79,7 +79,7 @@ b(Key) ->
 scratch_space_test() ->
     A = <<"A">>,
     B = <<"B">>,
-    DB = rabbit_federation_db,
+    DB = rabbit_federation_old_db,
     with_exchanges(
       fun(#exchange{name = N}) ->
               DB:set_active_suffix(N, upstream(x), A),

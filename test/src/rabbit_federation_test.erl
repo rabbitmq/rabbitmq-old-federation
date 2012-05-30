@@ -16,7 +16,7 @@
 
 -module(rabbit_federation_test).
 
--include("rabbit_federation.hrl").
+-include("rabbit_federation_old.hrl").
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("amqp_client/include/amqp_client.hrl").
 
@@ -197,7 +197,7 @@ binding_recovery() ->
 suffix({Nodename, _}, X) ->
     {_, NodeHost} = rabbit_nodes:parts(node()),
     Node = rabbit_nodes:make({Nodename, NodeHost}),
-    rpc:call(Node, rabbit_federation_db, get_active_suffix,
+    rpc:call(Node, rabbit_federation_old_db, get_active_suffix,
              [rabbit_misc:r(<<"/">>, exchange, <<"downstream">>),
               #upstream{connection_name = Nodename,
                         exchange        = list_to_binary(X)}, none]).
@@ -452,7 +452,7 @@ test_args(Ch, Args) ->
 assert_status(Xs) ->
     Links = lists:append([links(X) || X <- Xs]),
     Remaining = lists:foldl(fun assert_link_status/2,
-                            rabbit_federation_status:status(), Links),
+                            rabbit_federation_old_status:status(), Links),
     ?assertEqual([], remove_configured_links(Remaining)),
     ok.
 
@@ -469,7 +469,7 @@ links(#'exchange.declare'{exchange  = Name,
                           type      = <<"x-federation">>,
                           arguments = Args}) ->
     {longstr, Set} = rabbit_misc:table_lookup(Args,  <<"upstream-set">>),
-    {ok, Upstreams} = rabbit_federation_upstream:from_set(
+    {ok, Upstreams} = rabbit_federation_old_upstream:from_set(
                         Set, rabbit_misc:r(<<"/">>, exchange, Name)),
     [{Name, list_to_binary(U#upstream.connection_name), U#upstream.exchange} ||
         U <- Upstreams];
