@@ -3,6 +3,6 @@ release. Since the configuration has changed completely since then, we
 want to offer people the option to stick with the old way until they
 get a chance to rewrite their config.
 
-And this is a separate repo due to the vagiaries of the build system.
+And this is a separate repo due to the vagaries of the build system.
 
 See http://www.rabbitmq.com/federation.html
