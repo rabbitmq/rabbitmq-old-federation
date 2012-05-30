@@ -17,9 +17,9 @@
 -module(rabbit_federation_old_exchange).
 
 -rabbit_boot_step({?MODULE,
-                   [{description, "federation_old exchange type"},
+                   [{description, "federation exchange type"},
                     {mfa, {rabbit_registry, register,
-                           [exchange, <<"x-federation_old">>, ?MODULE]}},
+                           [exchange, <<"x-federation">>, ?MODULE]}},
                     {requires, rabbit_registry},
                     {enables, recovery}]}).
 
@@ -52,8 +52,8 @@ validate(#exchange{name      = XName,
     end,
     {longstr, TypeBin} = rabbit_misc:table_lookup(Args, <<"type">>),
     case rabbit_exchange:check_type(TypeBin) of
-        'x-federation_old' -> rabbit_federation_old_util:fail(
-                            "Type argument must not be x-federation_old.", []);
+        'x-federation' -> rabbit_federation_old_util:fail(
+                            "Type argument must not be x-federation.", []);
         _              -> ok
     end,
     with_module(X, fun (M) -> M:validate(X) end).

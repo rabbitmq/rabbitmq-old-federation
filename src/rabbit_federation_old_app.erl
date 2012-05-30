@@ -49,7 +49,7 @@ declare_exchange(Props) ->
     amqp_channel:call(
       Ch, #'exchange.declare'{
         exchange    = XNameBin,
-        type        = <<"x-federation_old">>,
+        type        = <<"x-federation">>,
         durable     = pget(durable,     Props, true),
         auto_delete = pget(auto_delete, Props, false),
         internal    = pget(internal,    Props, false),
