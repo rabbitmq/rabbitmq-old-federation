@@ -203,7 +203,7 @@ x(XName) ->
 %%----------------------------------------------------------------------------
 
 federation_old_up() ->
-    proplists:is_defined(rabbitmq_federation_old,
+    proplists:is_defined(rabbitmq_old_federation,
                          application:which_applications(infinity)).
 
 handle_command({add_binding, Binding}, State) ->
