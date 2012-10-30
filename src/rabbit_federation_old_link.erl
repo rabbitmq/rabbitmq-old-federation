@@ -133,7 +133,7 @@ handle_info({#'basic.deliver'{routing_key  = Key,
     case rabbit_federation_old_util:should_forward(Headers0, MaxHops) of
         true  -> {table, Info0} = rabbit_federation_old_upstream:to_table(Upstream),
                  Info = Info0 ++ [{<<"redelivered">>, bool, Redelivered}],
-                 Headers = rabbit_basic:append_table_header(
+                 Headers = rabbit_basic:prepend_table_header(
                              ?ROUTING_HEADER, Info, Headers0),
                  Seq = amqp_channel:next_publish_seqno(DCh),
                  amqp_channel:cast(DCh, #'basic.publish'{exchange    = XNameBin,
