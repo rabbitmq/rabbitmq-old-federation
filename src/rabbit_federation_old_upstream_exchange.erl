@@ -56,6 +56,7 @@ validate(#exchange{arguments = Args}) ->
 validate_binding(_X, _B) -> ok.
 create(_Tx, _X) -> ok.
 delete(_Tx, _X, _Bs) -> ok.
+policy_changed(_Tx, _X1, _X2) -> ok.
 add_binding(_Tx, _X, _B) -> ok.
 remove_bindings(_Tx, _X, _Bs) -> ok.
 assert_args_equivalence(X = #exchange{name      = Name,
