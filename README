@@ -1,6 +1,3 @@
-/!\ Repository moved to GitHub: https://github.com/rabbitmq/rabbitmq-old-federation
-    This is a stale read-only repository.
-
 This is a copy of the federation plugin as it existed at the 2.8.2
 release. Since the configuration has changed completely since then, we
 want to offer people the option to stick with the old way until they
